@@ -1,6 +1,6 @@
 from dotenv import load_dotenv
-from few_shot import FewShot
-from few_shot_utility import FewShotUtility
+from email_few_shot import FewShot
+from email_few_shot_utility import FewShotUtility
 
 load_dotenv()
 

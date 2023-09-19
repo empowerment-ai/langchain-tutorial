@@ -3,3 +3,4 @@ streamlit
 python-dotenv
 beautifulsoup4
 requests
+langchain
