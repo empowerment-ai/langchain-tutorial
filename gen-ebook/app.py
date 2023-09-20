@@ -5,6 +5,9 @@ from dotenv import load_dotenv
 from langchain.chains import LLMChain
 from langchain.chains import SequentialChain
 import json
+from docx import Document
+#from reportlab.lib.pagesizes import letter
+#from reportlab.pdfgen import canvas
 
 # Load environment variables
 load_dotenv()
@@ -80,6 +83,15 @@ prompt_template_chapter_details = PromptTemplate(
 # New LLMChain for Chapter Details
 chapter_details_chain = LLMChain(llm=llms, prompt=prompt_template_chapter_details, output_key="chapter_details", verbose=True)
 
+# New Prompt Template for Subtopic Details
+prompt_template_subtopic_details = PromptTemplate(
+    input_variables=['subtopic_title', 'topic', 'style'],
+    template="""Please generate the detail text for a subtopic in a book about '{topic}' entitled '{subtopic_title}'. 
+    Be sure to include as much detail as possible. It should be written in the writing style similar to '{style}'"""
+)
+
+# New LLMChain for Subtopic Details
+subtopic_details_chain = LLMChain(llm=llms, prompt=prompt_template_subtopic_details, output_key="subtopic_details", verbose=True)
 
 
 # Initialize the SequentialChain
@@ -95,31 +107,62 @@ st.title('Generate Book')
 # Text input for the topic
 topic = st.text_input('Enter the topic for the book:', '')
 
+# Text input for the style
+style = st.text_input('Author Style for the book:', 'Ken Burns')
+
+
+# Text input for the file name
+file_name = st.text_input('Enter the name for the output file:', '')
+
+# Selection for the output format
+output_format = st.selectbox('Choose the output format:', ['Word'])
+
+# Initialize new Document
+doc = Document()
+
 # Button to generate the title and chapters
 if st.button('Generate'):
-    if topic:
-        response = chain({'topic': topic})
-        st.write(f"Generated Book Title: {response['title']}")
-        st.write("List of Chapters:")
-        #st.write(response['book_chapters'])
-        # Parse the JSON if it's a string
-        if isinstance(response['book_chapters'], str):
-            parsed_chapters = json.loads(response['book_chapters'])
-        else:
-            parsed_chapters = response['book_chapters']
-
+    if topic and file_name:
+        response = chain({'topic': topic, 'style': style})
+        # Add title to Document
+        doc.add_heading(f"{response['title']}", 0)
+ 
+        st.write(f"{response['title']}")
+        
+        parsed_chapters = json.loads(response['book_chapters']) if isinstance(response['book_chapters'], str) else response['book_chapters']
+        
         for i, chapter in enumerate(parsed_chapters['chapters']):
+             # Add chapter title to Document
+            doc.add_heading(f"Chapter {i + 1} - {chapter['title']}", level=1)
+         
             st.write(f"Chapter {i + 1} - {chapter['title']}")
-            for j, subtopic in enumerate(chapter['subTopics']):
-                st.write(f"Subtopic {j + 1} - {subtopic['title']}")
-            st.write("")
-
-        for i, chapter in enumerate(parsed_chapters['chapters']):
-            st.write(f"Generating details for Chapter {i + 1} - {chapter['title']}...")
+            
+            # Fetch and display chapter details
             chapter_details_response = chapter_details_chain({'chapter_title': chapter['title'], 'topic': topic})
-            st.write(f"Details for Chapter {i + 1} - {chapter['title']}:")
+
+            # Add chapter details to Document
+            doc.add_paragraph(chapter_details_response['chapter_details'])
+          
             st.write(chapter_details_response['chapter_details'])
-            break  # remove break if you want details for all chapters
+            
+            for j, subtopic in enumerate(chapter['subTopics']):
+                # Add subtopic title to Document
+                doc.add_heading(f"{subtopic['title']}", level=2)
+          
+                st.write(f"{subtopic['title']}")
+                
+                # Fetch and display subtopic details
+                subtopic_details_response = subtopic_details_chain({'subtopic_title': subtopic['title'], 'topic': topic, 'style': style})
+
+                # Add subtopic details to Document
+                doc.add_paragraph(subtopic_details_response['subtopic_details'])
+                st.write(subtopic_details_response['subtopic_details'])
+                
+            st.write("")  # Adds a line break for better readability
+            break
+        # Save the document
+        doc.save(file_name)
+        st.write(f"The generated book has been saved as '{file_name}'")
 
     else:
-        st.write("Please enter a topic.")
+        st.write("Please enter a topic and file name.")
