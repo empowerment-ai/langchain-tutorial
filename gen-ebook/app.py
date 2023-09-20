@@ -4,12 +4,14 @@ from langchain.prompts import PromptTemplate
 from dotenv import load_dotenv
 from langchain.chains import LLMChain
 from langchain.chains import SequentialChain
+import json
 
 # Load environment variables
 load_dotenv()
 
 # Initialize language model
-llms = OpenAI(temperature=0.6)
+
+llms = OpenAI(temperature=0.6, verbose=True, max_tokens=3500)
 
 # Initialize Prompt Templates
 prompt_template_title = PromptTemplate(
@@ -17,14 +19,57 @@ prompt_template_title = PromptTemplate(
     template="You are an AI Assistant who is helping an author write an ebook about book about {topic}. I want you to generate a good title for such a book"
 )
 
-title_chain = LLMChain(llm=llms, prompt=prompt_template_title, output_key="title")
+title_chain = LLMChain(llm=llms, prompt=prompt_template_title, output_key="title", verbose=True)
 
 prompt_template_chapters = PromptTemplate(
     input_variables=['title', 'topic'],
-    template="I want you to create a list of chapters for a book called {title} that is about {topic}"
+    template="""
+    I want you to create a complete outline for a book called {title} that is about {topic}.  The outlook should be as detailed as necessary.  
+    All sub topics with the chapter should be completely defined as well. the output should be in JSON format.  Only return the JSON structure.
+    the JSON structure should be a list of chapters.  Example JSON:
+{{
+   "chapters":[
+      {{
+         "title":"Introduction to Agile Methodologies",
+         "subTopics":[
+            {{
+               "title":"What is Agile?",
+               "subTopics":[
+                  "History of Agile",
+                  "Agile Principles and Values",
+                  "The Agile Manifesto"
+               ]
+            }},
+            {{
+               "title":"Benefits of Agile Methodologies",
+               "subTopics":[
+                  "Increased Productivity",
+                  "Better Quality",
+                  "Faster Delivery",
+                  "Improved Employee Engagement"
+               ]
+            }}
+         ]
+      }},
+      {{
+         "title":"Agile Methodologies and Practices",
+         "subTopics":[
+            {{
+               "title":"Scrum",
+               "subTopics":[
+                  "Roles and Responsibilities",
+                  "Scrum Events",
+                  "Sprint Planning and Retrospective"
+               ]
+            }}
+         ]
+      }}
+   ]
+}}
+    """
 )
 
-chapter_chain = LLMChain(llm=llms, prompt=prompt_template_chapters, output_key="book_chapters")
+chapter_chain = LLMChain(llm=llms, prompt=prompt_template_chapters, output_key="book_chapters", verbose=True)
 
 # New Prompt Template for Chapter Details
 prompt_template_chapter_details = PromptTemplate(
@@ -33,7 +78,7 @@ prompt_template_chapter_details = PromptTemplate(
 )
 
 # New LLMChain for Chapter Details
-chapter_details_chain = LLMChain(llm=llms, prompt=prompt_template_chapter_details, output_key="chapter_details")
+chapter_details_chain = LLMChain(llm=llms, prompt=prompt_template_chapter_details, output_key="chapter_details", verbose=True)
 
 
 
@@ -56,13 +101,25 @@ if st.button('Generate'):
         response = chain({'topic': topic})
         st.write(f"Generated Book Title: {response['title']}")
         st.write("List of Chapters:")
-        st.write(response['book_chapters'])
+        #st.write(response['book_chapters'])
+        # Parse the JSON if it's a string
+        if isinstance(response['book_chapters'], str):
+            parsed_chapters = json.loads(response['book_chapters'])
+        else:
+            parsed_chapters = response['book_chapters']
 
-        # Generate details for each chapter
-        for i, chapter in enumerate(response['book_chapters'].split("\n")):  # Assuming chapters are separated by newlines
-            chapter_details_response = chapter_details_chain({'chapter_title': chapter, 'topic': topic})
-            st.write(f"Details for Chapter {i + 1} - {chapter}:")
+        for i, chapter in enumerate(parsed_chapters['chapters']):
+            st.write(f"Chapter {i + 1} - {chapter['title']}")
+            for j, subtopic in enumerate(chapter['subTopics']):
+                st.write(f"Subtopic {j + 1} - {subtopic['title']}")
+            st.write("")
+
+        for i, chapter in enumerate(parsed_chapters['chapters']):
+            st.write(f"Generating details for Chapter {i + 1} - {chapter['title']}...")
+            chapter_details_response = chapter_details_chain({'chapter_title': chapter['title'], 'topic': topic})
+            st.write(f"Details for Chapter {i + 1} - {chapter['title']}:")
             st.write(chapter_details_response['chapter_details'])
-            break
+            break  # remove break if you want details for all chapters
+
     else:
         st.write("Please enter a topic.")
