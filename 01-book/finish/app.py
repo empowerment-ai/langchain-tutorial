@@ -3,7 +3,6 @@ from langchain.chat_models import ChatOpenAI
 from langchain.prompts import PromptTemplate
 from dotenv import load_dotenv
 from langchain.chains import LLMChain
-
 import json
 import time  # import the time module
 
@@ -29,7 +28,6 @@ prompt_template_title = PromptTemplate(
     The book title should be no more than 10 words.
     """
 )
-
 title_chain = LLMChain(llm=llms, prompt=prompt_template_title, output_key="title")
 
 prompt_template_chapters = PromptTemplate(
@@ -42,7 +40,6 @@ prompt_template_chapters = PromptTemplate(
         
     """
 )
-
 chapter_chain = LLMChain(llm=llms, prompt=prompt_template_chapters, output_key="book_chapters")
 
 prompt_template_chapter_count = PromptTemplate(
@@ -53,7 +50,6 @@ prompt_template_chapter_count = PromptTemplate(
     following response: {{"chapters": "5"}}
     """
 )
-
 chapter_count_chain = LLMChain(llm=llms, prompt=prompt_template_chapter_count, output_key="chapter_count")
 
 prompt_template_chapters_details = PromptTemplate(
@@ -67,30 +63,24 @@ prompt_template_chapters_details = PromptTemplate(
 )
 chapter_details_chain = LLMChain(llm=llms, prompt=prompt_template_chapters_details, output_key="chapter_details")
 
-#langchain prompt for Introduction For book
 prompt_template_introduction = PromptTemplate(
     input_variables=['title', 'topic', 'book_chapters'],
     template="""
     I want you to act as an expert on the topic of '{topic}'. I want you to write an introduction for the book called '{title}' for that topic. 
     The introduction should be 3 to 5 paragraphs.  I want you to write in a conversational tone.  I want you to write in a way that is easy to understand.
     The introduction should match the following table of contents: {book_chapters}
-        
     """
 )
-
 intro_chain = LLMChain(llm=llms, prompt=prompt_template_introduction, output_key="introduction")
 
-#langchain prompt for Conclusion For book
 prompt_template_conclusion = PromptTemplate(
     input_variables=['title', 'topic', 'book_chapters'],
     template="""
     I want you to act as an expert on the topic of '{topic}'. I want you to write a conclusion for the book called '{title}' for that topic. 
     The conclusion should be 3 to 5 paragraphs.  I want you to write in a conversational tone.  I want you to write in a way that is easy to understand.
     The conclusion should match the following table of contents: {book_chapters}
-        
     """
 )
-
 conclusion_chain = LLMChain(llm=llms, prompt=prompt_template_conclusion, output_key="conclusion")
 
 # Initialize an empty string for accumulated_text outside the button callback
@@ -118,11 +108,9 @@ if st.button('Generate'):
         # Generate the introduction
         st.text('Generating introduction...')
         response.update(intro_chain({'topic': topic, 'title': response['title'], 'book_chapters': response['book_chapters']}))
-        #st.subheader("Introduction")
-        #st.write(response['introduction'])
-        accumulated_text += "================Introduction======================\n"
         accumulated_text += f"{response['introduction']}\n\n"
 
+        # Generate the chapters
         parsed_chapter_count = json.loads(response['chapter_count'])
         num_chapters = int(parsed_chapter_count['chapters'])
         st.text(f"Number of chapters: {num_chapters}")
@@ -149,11 +137,7 @@ if st.button('Generate'):
         # Generate the conclusion
         st.text('Generating conclusion...')
         response.update(conclusion_chain({'topic': topic, 'title': response['title'], 'book_chapters': response['book_chapters']}))
-        #st.subheader("Conclusion")
-        #st.write(response['conclusion'])
-        accumulated_text += "================Conclusion======================\n"
         accumulated_text += f"{response['conclusion']}\n\n"
-
     
         # Display the accumulated text in a single text area
         st.text_area('Generated Content:', accumulated_text, height=2000)
@@ -164,6 +148,5 @@ if st.button('Generate'):
         st.success('Generation Complete!')
         # After generating the content...
         st.download_button('Download Generated Content', accumulated_text, 'generated_content.txt')
-
     else:
         st.error("Please enter a topic")

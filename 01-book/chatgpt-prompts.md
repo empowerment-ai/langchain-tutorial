@@ -1,4 +1,4 @@
-
+# Prompts to write a book using ChatGPT
 
 ## Generate Title Prompt
 You are an AI Assistant who is helping an author write an ebook about {topic}. Generate a good title for the book. 
