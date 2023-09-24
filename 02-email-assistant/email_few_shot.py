@@ -4,7 +4,7 @@ class FewShot:
     def get_examples():
         examples = [
             {
-                "email_body": """Hello Everyone my name is Bob and I’m excited to learn more about Python programming. 
+                "email_body": """Hello Everyone my name is Bob and I’m excited to learn more about  programming. 
                 This is my last class before I complete my associate degree. I currently work full time at Verizon doing IT support and my major is Cyber Security. 
                 My expectation of this course is to just learn and be sponge on everything this course has to be offer because I know this will help in my career as 
                 far as being a cyber security professional.""",
@@ -20,14 +20,14 @@ class FewShot:
                 1) This is my first online college level class.
                 2) I am a sophomore in college and about 30% done with my degree. 
                 3) My major is Computer Science.
-                4) From this course, I am expecting to be able to write a code and debug it in the Python language. 
+                4) From this course, I am expecting to be able to write a code and and debug it in the python language. 
                 I am hoping that I will be able to resolve issues and simplify processes with the use of this language. 
 
                 Good luck with this course everyone!
                 """,
                 "response": """
                 Paula, Great to meet you and welcome to the course.  I am really excited to get started.  This course will definately teach you the fundamentals of 
-                C++.   All due dates are posted.  It is important to stay on track in order to have the best chance to do well in this course.
+                Python.   All due dates are posted.  It is important to stay on track in order to have the best chance to do well in this course.
                 Please reach out if you have questions or need help along the way.  
                 Cheers, Prof Michak
                 """
@@ -43,6 +43,21 @@ class FewShot:
                         Michael,  Its nice to meet you.  Welcome to the course.   I see there is light at the end of the tunnel for you. 
                         Excellent choice in choosing Cyber, and your associate degree.  Cyber is a great major. Best of luck this
                         semester.  If you need any help or have questions, please reach out.
+                        Cheers, Prof Michak
+                        """
+            },
+            
+            {
+                "email_body": """
+                This is not my first Online class, i have had some in the past. I enjoy taking classes online so that i can learn from the comfort of my home
+                2. After another semester I will be eligible for my associates degree
+                3. I am in the Cybersecurity track hoping to get my bachelors in it as well, alongside some Certifications as well. 
+                4. I have had an introduction into C+ , I want to thoroughly better my knowledge on what I have already learned and want to be more interactive with code. 
+                """,
+                "response": """
+                        Welcome. It's great to have you in the course. Earning your associate's degree is a big accomplishment.  Congrats on being so close. Also, 
+                        cybersecurity is a great field to be in, and you should find ample opportunities. This course will definitely help you improve your coding 
+                        skills and interact more with code. If you ever need any assistance or have any questions, don't hesitate to reach out. Good luck this semester! 
                         Cheers, Prof Michak
                         """
             }
@@ -61,10 +76,14 @@ class FewShot:
     @staticmethod
     def get_prefix():
         return f"""
-        I want you to play the role of a IA asistant helping to answer emails for new students in a course.  Your responses should be no more than 3 or 4 sentences
+        I want you to play the role of a IA asistant helping to answer emails for new students in a community college course. Most students will eventually
+         transfer to a four year university.  Your responses should be no more than 3 or 4 sentences
         and in my writing style.  If the student provided their name, you should address them within the response.  Be sure to welcome them and remind them 
         to always reach out for help if they struggle. It should be in a friendly tone as well.  If the student mentions working or having a family, be sure to 
-        encourage them and let them know that you understand the difficulting balancing work and or life and school.    
+        encourage them and let them know that you understand the difficulting balancing work and or life and school.  Also, this email can be used as a template 
+        many different languages.  So unless they mention the specific language, do not include a specific language in your response.  If they mention a specific
+        then try to include it.  Also, if they are working and/or have a family, be sure to encourage them to stay on track with deadlines and assignments to have
+        the best chance to do well in the course.
         """
 
     @staticmethod

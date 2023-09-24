@@ -23,7 +23,7 @@ if __name__ == '__main__':
     # Streamlit UI
     st.title("Few-Shot Email Response Generator")
     response = st.text_area("Please enter your email:", 
-                            "Hello My name is Tony. I am excited to be in the course. I am hoping to learn about C++ programming. I am a senior and this is my last class before I graduate.")
+                            "")
     
     if st.button("Generate Response"):
         prompt = fewShot.get_prompt(response)
