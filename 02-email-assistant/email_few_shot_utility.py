@@ -1,4 +1,3 @@
-import os
 from langchain import PromptTemplate
 from langchain.prompts.few_shot import FewShotPromptTemplate
 from langchain.chat_models import ChatOpenAI
@@ -33,9 +32,9 @@ class FewShotUtility:
         return example_prompt
 
     @staticmethod
-    def print_email_response(prompt):
+    def print_email_response(openaikey, prompt):
         prompt_template = ChatPromptTemplate.from_template(prompt)
         message = prompt_template.format_messages()
-        llm = ChatOpenAI(temperature=.5, openai_api_key=os.getenv("OPENAI_API_KEY"))
+        llm = ChatOpenAI(temperature=.5, openai_api_key=openaikey)
         response = llm(message)
         return response.content
