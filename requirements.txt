@@ -6,4 +6,7 @@ requests
 langchain
 python-docx
 reportlab
-
+PyPDF2
+faiss-cpu
+altair
+tiktoken
