@@ -2,7 +2,7 @@
 __pycache__/
 *.py[cod]
 *$py.class
-
+04-ask-myfiles/files/*.*
 # C extensions
 *.so
 

@@ -12,7 +12,7 @@ load_dotenv()
 
 # Streamlit UI
 st.set_page_config(page_title="Generate Content")
-st.Header('🦜🔗 Generate Content')
+st.header('🦜🔗 Generate Content')
 openai_api_key_env = os.getenv('OPENAI_API_KEY')
 openai_api_key = st.sidebar.text_input('OpenAI API Key', placeholder='sk-', value=openai_api_key_env)
 
@@ -57,7 +57,7 @@ def generate_response(model, topic):
         I want you to act as an expert on the topic of '{topic}'. The TOC is {book_chapters}.  I want you write the chapter details for 
         chapter {chapter_number} of the book. I want the chapter broken down into the sub topics mentioned in the TOC for this chapter.  
         Each sub topic should be 3 to 5 paragrahs. I want you to write in a conversational tone.  I want you to write in a way that is
-        easy to understand.  
+        easy to understand.  This chapter should be around 1000 words. 
         """
     )
     chapter_details_chain = LLMChain(llm=llms, prompt=prompt_template_chapters_details, output_key="chapter_details")
@@ -89,6 +89,7 @@ def generate_response(model, topic):
     
     st.subheader(f"Book Title: {response['title']}")
     accumulated_text += f"{response['title']}\n\n"
+    st.session_state['title'] = response['title']  # Save to session state
     
     st.text('Generating chapters...')
     response.update(chapter_chain({'topic': topic, 'title': response['title']}))
@@ -108,10 +109,7 @@ def generate_response(model, topic):
     parsed_chapter_count = json.loads(response['chapter_count'])
     num_chapters = int(parsed_chapter_count['chapters'])
     st.text(f"Number of chapters: {num_chapters}")
-    
-    # Initialize the progress bar with value 0
-    progress_bar = st.progress(0)
-    
+   
     for chapter in range(num_chapters):
         st.text(f"Generating details for Chapter {chapter+1}...")
         chapter_details_response = chapter_details_chain({'book_chapters': response['book_chapters'], 
@@ -122,11 +120,7 @@ def generate_response(model, topic):
         st.write(f"Chapter {chapter+1} Word Count: {word_count}")
         accumulated_text += f"Chapter {chapter+1}\n"
         accumulated_text += f"{chapter_details}\n\n"
-        
-        # Update the progress bar for each chapter generated
-        progress = (chapter + 1) / num_chapters
-        progress_bar.progress(progress)
-        time.sleep(0.1)  # You can remove this line, it’s just for visual effect
+       
         
     # Generate the conclusion
     st.text('Generating conclusion...')
@@ -136,13 +130,10 @@ def generate_response(model, topic):
     # Display the accumulated text in a single text area
     st.text_area('Generated Content:', accumulated_text, height=2000)
     
-    # Reset the progress bar to 0 once generation is complete
-    progress_bar.progress(0)
-    
+   
     st.success('Generation Complete!')
-    # After generating the content...
-    st.download_button('Download Generated Content', accumulated_text, 'generated_content.txt')
-
+    st.session_state['accumulated_text'] = accumulated_text  # Save to session state
+    
 with st.form('my_form'):
   model = st.selectbox('Select Model:', ['gpt-3.5-turbo', 'gpt-4'])
   topic = st.text_input('Enter the topic for the book:', '')
@@ -152,3 +143,13 @@ with st.form('my_form'):
     st.warning('Please enter your OpenAI API key!', icon='⚠')
   if submitted and openai_api_key.startswith('sk-'):
     generate_response(model, topic)
+
+# Place the download button outside of the form
+if 'accumulated_text' in st.session_state and 'title' in st.session_state:
+    title = st.session_state['title']
+    st.download_button(
+        label="Download Generated Text",
+        data=st.session_state['accumulated_text'].encode(),
+        file_name=f'{title}.txt',
+        mime='text/plain'
+    )

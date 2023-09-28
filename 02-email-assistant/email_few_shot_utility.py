@@ -2,6 +2,7 @@ from langchain import PromptTemplate
 from langchain.prompts.few_shot import FewShotPromptTemplate
 from langchain.chat_models import ChatOpenAI
 from langchain.prompts import ChatPromptTemplate
+from langchain.callbacks import get_openai_callback
 
 class FewShotUtility:
 
@@ -35,6 +36,8 @@ class FewShotUtility:
     def print_email_response(openaikey, prompt):
         prompt_template = ChatPromptTemplate.from_template(prompt)
         message = prompt_template.format_messages()
-        llm = ChatOpenAI(temperature=.5, openai_api_key=openaikey)
-        response = llm(message)
-        return response.content
+        with get_openai_callback() as cb:
+            llm = ChatOpenAI(temperature=.5, openai_api_key=openaikey)
+            response = llm(message)
+            print(type(cb.total_cost))
+            return response.content
