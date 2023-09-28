@@ -1,4 +1,3 @@
-import os
 import streamlit as st
 from dotenv import load_dotenv
 from PyPDF2 import PdfReader
@@ -10,31 +9,35 @@ from langchain.memory import ConversationBufferMemory
 from langchain.chains import ConversationalRetrievalChain
 from htmlTemplates import css, bot_template, user_template
 from langchain.llms import HuggingFaceHub
-from langchain.document_loaders import Docx2txtLoader
-from langchain.document_loaders import TextLoader
-from langchain.document_loaders import PyPDFLoader
+# from langchain.document_loaders import Docx2txtLoader
+# from langchain.document_loaders import TextLoader
+# from langchain.document_loaders import PyPDFLoader
+from docx import Document
 
-def get_vectorstore_for_folder(folder_path):
-    documents = []
-    for file in os.listdir(folder_path):
-        if file.endswith(".pdf"):
-            pdf_path = os.path.join(folder_path, file)
-            loader = PyPDFLoader(pdf_path)
-            documents.extend(loader.load())
-        elif file.endswith('.docx') or file.endswith('.doc'):
-            doc_path = os.path.join(folder_path, file)
-            loader = Docx2txtLoader(doc_path)
-            documents.extend(loader.load())
-        elif file.endswith('.txt'):
-            text_path = os.path.join(folder_path, file)
-            loader = TextLoader(text_path)
-            documents.extend(loader.load())    
-    text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=10)
-    documents = text_splitter.split_documents(documents)
+def get_vectorstore_for_UploadedFiles(uploaded_files):
+    text = ""
+    for file in uploaded_files:
+        if file.name.endswith(".pdf"):
+            pdf_reader = PdfReader(file)
+            for page in pdf_reader.pages:
+                page_text = page.extract_text()
+                if page_text:
+                    text += page_text
+        elif file.name.endswith('.txt'):
+            text += file.read().decode("utf-8")
+        elif file.name.endswith('csv'):
+            text += file.read().decode("utf-8")
+        elif file.name.endswith('.docx') or file.name.endswith('.doc'):
+            doc = Document(file)
+            for para in doc.paragraphs:
+                text += para.text
+    print(text)
+    text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
+    text_chunks = text_splitter.split_text(text)
     embeddings = OpenAIEmbeddings()
     # embeddings = HuggingFaceInstructEmbeddings(model_name="hkunlp/instructor-xl")
-    vectorstore = FAISS.from_documents(documents=documents, embedding=embeddings)
-    return vectorstore
+    vectorstore = FAISS.from_texts(texts=text_chunks, embedding=embeddings)
+    return vectorstore            
 
 def get_conversation_chain(vectorstore):
     llm = ChatOpenAI()
@@ -86,14 +89,12 @@ def main():
             "Upload your document here and click on 'Process'", accept_multiple_files=True, )
         if st.button("Process"):
             with st.spinner("Processing"):
-                
                 # create vector store
-                vectorstore = get_vectorstore_for_folder("files")
+                vectorstore = get_vectorstore_for_UploadedFiles(docs)
 
                 # create conversation chain
                 st.session_state.conversation = get_conversation_chain(
                     vectorstore)
-
 
 if __name__ == '__main__':
     main()
