@@ -1,11 +1,12 @@
+import os
+import json
+from dotenv import load_dotenv
 import streamlit as st
 from langchain.chat_models import ChatOpenAI
 from langchain.prompts import PromptTemplate
-from dotenv import load_dotenv
 from langchain.chains import LLMChain
-import json
-import time  # import the time module
-import os
+from langchain.callbacks import get_openai_callback
+from langchain.memory import ConversationBufferMemory
 
 # Load environment variables
 load_dotenv()
@@ -20,6 +21,9 @@ def generate_response(model, topic):
     # Initialize language model
     llms = ChatOpenAI(temperature=0.3, model=model)
 
+    memory = ConversationBufferMemory(
+        memory_key='chat_history', return_messages=True)
+    
     # Initialize Prompt Templates with updated chapter and subtopic numbers
     prompt_template_title = PromptTemplate(
         input_variables=['topic'],
@@ -27,7 +31,7 @@ def generate_response(model, topic):
         The book title should be no more than 10 words.
         """
     )
-    title_chain = LLMChain(llm=llms, prompt=prompt_template_title, output_key="title")
+    title_chain = LLMChain(llm=llms, prompt=prompt_template_title, output_key="title", memory=memory)
 
     prompt_template_chapters = PromptTemplate(
         input_variables=['title', 'topic'],
@@ -142,8 +146,9 @@ with st.form('my_form'):
   if not openai_api_key.startswith('sk-'):
     st.warning('Please enter your OpenAI API key!', icon='⚠')
   if submitted and openai_api_key.startswith('sk-'):
-    generate_response(model, topic)
-
+    with get_openai_callback() as cb:
+        generate_response(model, topic)
+        print(cb)
 # Place the download button outside of the form
 if 'accumulated_text' in st.session_state and 'title' in st.session_state:
     title = st.session_state['title']
