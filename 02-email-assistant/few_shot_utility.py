@@ -33,11 +33,12 @@ class FewShotUtility:
         return example_prompt
 
     @staticmethod
-    def print_email_response(openaikey, prompt):
+    def generate_email_response(openaikey, prompt, model="gpt-4"):
         prompt_template = ChatPromptTemplate.from_template(prompt)
         message = prompt_template.format_messages()
         with get_openai_callback() as cb:
-            llm = ChatOpenAI(temperature=.5, openai_api_key=openaikey)
+            print("model:", model)
+            llm = ChatOpenAI(temperature=.5, openai_api_key=openaikey, model=model)
             response = llm(message)
-            print(type(cb.total_cost))
+            print(cb)
             return response.content
