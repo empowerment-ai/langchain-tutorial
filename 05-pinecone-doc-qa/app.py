@@ -10,6 +10,9 @@ from dotenv import load_dotenv
 load_dotenv()
 
 model_name = "gpt-3.5-turbo"
+#model_name = "gpt-4"
+#model_name = "text-davinci-003"
+
 openai_api_key_env = os.getenv('OPENAI_API_KEY')
 pinecone_api_key_env = os.getenv('PINECONE_API_KEY')
 
