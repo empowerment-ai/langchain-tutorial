@@ -1,5 +1,6 @@
 openai
 streamlit
+streamlit-chat
 python-dotenv
 beautifulsoup4
 requests
@@ -10,3 +11,5 @@ PyPDF2
 faiss-cpu
 altair
 tiktoken
+sentence-transformers
+unstructured
